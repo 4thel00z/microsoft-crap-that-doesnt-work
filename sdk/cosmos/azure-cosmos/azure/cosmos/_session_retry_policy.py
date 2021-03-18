@@ -68,7 +68,8 @@ class _SessionRetryPolicy(object):
         """
         self.session_token_retry_count += 1
         # clear previous location-based routing directive
-        self.request.clear_route_to_location()
+        if self.request:
+            self.request.clear_route_to_location()
 
         if not self.endpoint_discovery_enable:
             # if endpoint discovery is disabled, the request cannot be retried anywhere else

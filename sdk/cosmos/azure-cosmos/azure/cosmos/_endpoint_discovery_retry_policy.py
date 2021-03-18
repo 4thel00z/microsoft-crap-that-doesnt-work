@@ -84,17 +84,18 @@ class EndpointDiscoveryRetryPolicy(object):
         # set the refresh_needed flag to ensure that endpoint list is
         # refreshed with new writable and readable locations
         self.global_endpoint_manager.refresh_needed = True
+        
+        if self.request:
+            # clear previous location-based routing directive
+            self.request.clear_route_to_location()
 
-        # clear previous location-based routing directive
-        self.request.clear_route_to_location()
+            # set location-based routing directive based on retry count
+            # simulating single master writes by ensuring usePreferredLocations
+            # is set to false
+            self.request.route_to_location_with_preferred_location_flag(self.failover_retry_count, False)
 
-        # set location-based routing directive based on retry count
-        # simulating single master writes by ensuring usePreferredLocations
-        # is set to false
-        self.request.route_to_location_with_preferred_location_flag(self.failover_retry_count, False)
-
-        # Resolve the endpoint for the request and pin the resolution to the resolved endpoint
-        # This enables marking the endpoint unavailability on endpoint failover/unreachability
-        self.location_endpoint = self.global_endpoint_manager.resolve_service_endpoint(self.request)
-        self.request.route_to_location(self.location_endpoint)
+            # Resolve the endpoint for the request and pin the resolution to the resolved endpoint
+            # This enables marking the endpoint unavailability on endpoint failover/unreachability
+            self.location_endpoint = self.global_endpoint_manager.resolve_service_endpoint(self.request)
+            self.request.route_to_location(self.location_endpoint)
         return True
